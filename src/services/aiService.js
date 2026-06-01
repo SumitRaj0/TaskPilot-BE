@@ -6,7 +6,7 @@ let client;
 function getOpenAI() {
   const key = process.env.OPENAI_API_KEY?.trim();
   if (!key) {
-    throw new Error('Add OPENAI_API_KEY to server/.env — see .env.example');
+    throw new Error('Add OPENAI_API_KEY to server/.env');
   }
   if (!client) client = new OpenAI({ apiKey: key });
   return client;

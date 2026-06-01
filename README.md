@@ -21,8 +21,7 @@ Express.js REST API for [TaskPilot AI](https://github.com/SumitRaj0/TaskPilot-BE
 git clone https://github.com/SumitRaj0/TaskPilot-BE.git
 cd TaskPilot-BE
 npm install
-cp .env.example .env
-# Edit .env with your values
+# Create server/.env (see below) — not in git
 npm run dev
 ```
 
@@ -30,9 +29,9 @@ API runs at **http://localhost:5000** (default).
 
 Health check: `GET http://localhost:5000/api/health`
 
-## Environment variables
+## Environment (one file: `.env`)
 
-Copy `.env.example` to `.env` and fill in:
+Create **`server/.env`** in the project root (this file is gitignored — never commit secrets):
 
 | Variable | Required | Description |
 | -------- | -------- | ----------- |
@@ -41,19 +40,17 @@ Copy `.env.example` to `.env` and fill in:
 | `MONGODB_URI` | **Yes** | MongoDB Atlas connection string |
 | `JWT_SECRET` | **Yes** | Long random string for signing tokens |
 | `JWT_EXPIRES_IN` | No | Token lifetime (default `7d`) |
-| `OPENAI_API_KEY` | For AI | OpenAI key (`sk-...`). **Not** Gemini/Claude |
-| `CLIENT_URL` | **Yes** | Frontend origin for CORS (e.g. `http://localhost:5173`) |
-
-### Example `.env`
+| `OPENAI_API_KEY` | For AI | OpenAI key (`sk-...`) |
+| `CLIENT_URL` | **Yes** | Comma-separated frontend URLs for CORS |
 
 ```env
 PORT=5000
-NODE_ENV=development
+NODE_ENV=production
 MONGODB_URI=mongodb+srv://USER:PASS@cluster0.xxxxx.mongodb.net/taskpilot?retryWrites=true&w=majority
-JWT_SECRET=change-this-to-a-long-random-string
+JWT_SECRET=your-long-random-secret
 JWT_EXPIRES_IN=7d
 OPENAI_API_KEY=sk-your-openai-api-key
-CLIENT_URL=http://localhost:5173
+CLIENT_URL=http://localhost:5173,https://task-pilot-fe.vercel.app
 ```
 
 ### MongoDB Atlas
@@ -128,7 +125,7 @@ src/
 2. **Root directory:** `.` (repo root is the API).
 3. **Build:** `npm install`
 4. **Start:** `npm start`
-5. Set all env vars from `.env.example`.
+5. Set all env vars from your local `.env` (same keys as above).
 6. Set `CLIENT_URL` to your frontend URL (e.g. Vercel app).
 7. Set `NODE_ENV=production`.
 
