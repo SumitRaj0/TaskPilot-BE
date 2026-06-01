@@ -1,9 +1,16 @@
 import jwt from 'jsonwebtoken';
 import { User } from '../models/User.js';
 
+export const getTokenFromRequest = (req) => {
+  if (req.cookies?.token) return req.cookies.token;
+  const header = req.headers.authorization;
+  if (header?.startsWith('Bearer ')) return header.slice(7);
+  return null;
+};
+
 export const protect = async (req, res, next) => {
   try {
-    const token = req.cookies?.token;
+    const token = getTokenFromRequest(req);
 
     if (!token) {
       return res.status(401).json({ message: 'Not authorized. Please log in.' });

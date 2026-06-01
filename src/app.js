@@ -11,9 +11,23 @@ import aiRoutes from './routes/aiRoutes.js';
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+app.set('trust proxy', 1);
+
+const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.warn('CORS blocked origin:', origin);
+        callback(null, false);
+      }
+    },
     credentials: true,
   })
 );
@@ -30,7 +44,7 @@ app.use(errorHandler);
 
 connectDB()
   .then(() => {
-    app.listen(PORT, () => console.log(`API on http://localhost:${PORT}`));
+    app.listen(PORT, () => console.log(`API on port ${PORT}`));
   })
   .catch((err) => {
     console.error('Startup failed:', err.message);
