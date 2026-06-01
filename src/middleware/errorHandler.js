@@ -7,14 +7,14 @@ export const errorHandler = (err, req, res, next) => {
   }
 
   if (err.code === 11000) {
-    return res.status(400).json({ message: 'Email already registered.' });
+    return res.status(400).json({ message: 'Email already in use' });
   }
 
   if (err.name === 'CastError') {
-    return res.status(400).json({ message: 'Invalid resource ID.' });
+    return res.status(400).json({ message: 'Invalid id' });
   }
 
   res.status(err.statusCode || 500).json({
-    message: err.message || 'Internal server error',
+    message: err.message || 'Server error',
   });
 };

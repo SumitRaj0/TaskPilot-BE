@@ -1,7 +1,7 @@
 import { Task } from '../models/Task.js';
-import { normalizeBulkTask } from '../utils/taskNormalize.js';
+import { shapeBulkTask } from '../utils/taskHelpers.js';
 
-const MAX_BULK_TASKS = 50;
+const BULK_LIMIT = 50;
 
 export const getTasks = async (req, res, next) => {
   try {
@@ -11,8 +11,8 @@ export const getTasks = async (req, res, next) => {
     if (status) filter.status = status;
     if (priority) filter.priority = priority;
     if (category) {
-      const escaped = String(category).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      filter.category = new RegExp(`^${escaped}$`, 'i');
+      const safe = String(category).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      filter.category = new RegExp(`^${safe}$`, 'i');
     }
     if (search) filter.title = { $regex: search, $options: 'i' };
 
@@ -40,9 +40,7 @@ export const updateTask = async (req, res, next) => {
       { new: true, runValidators: true }
     );
 
-    if (!task) {
-      return res.status(404).json({ message: 'Task not found.' });
-    }
+    if (!task) return res.status(404).json({ message: 'Task not found' });
 
     res.json({ task });
   } catch (error) {
@@ -57,11 +55,9 @@ export const deleteTask = async (req, res, next) => {
       userId: req.user._id,
     });
 
-    if (!task) {
-      return res.status(404).json({ message: 'Task not found.' });
-    }
+    if (!task) return res.status(404).json({ message: 'Task not found' });
 
-    res.json({ message: 'Task deleted successfully.' });
+    res.json({ message: 'Task deleted' });
   } catch (error) {
     next(error);
   }
@@ -71,28 +67,23 @@ export const bulkCreateTasks = async (req, res, next) => {
   try {
     const { tasks } = req.body;
 
-    if (!Array.isArray(tasks) || tasks.length === 0) {
-      return res.status(400).json({ message: 'Tasks array is required.' });
+    if (!Array.isArray(tasks) || !tasks.length) {
+      return res.status(400).json({ message: 'Send a non-empty tasks array' });
+    }
+    if (tasks.length > BULK_LIMIT) {
+      return res.status(400).json({ message: `Max ${BULK_LIMIT} tasks per request` });
     }
 
-    if (tasks.length > MAX_BULK_TASKS) {
-      return res.status(400).json({
-        message: `Cannot create more than ${MAX_BULK_TASKS} tasks at once.`,
-      });
-    }
-
-    const normalized = [];
+    const prepared = [];
     for (const item of tasks) {
       try {
-        normalized.push(normalizeBulkTask(item, req.user._id));
+        prepared.push(shapeBulkTask(item, req.user._id));
       } catch (err) {
-        return res.status(400).json({
-          message: err.message || 'Invalid task in bulk request.',
-        });
+        return res.status(400).json({ message: err.message });
       }
     }
 
-    const created = await Task.insertMany(normalized, { ordered: true });
+    const created = await Task.insertMany(prepared);
     res.status(201).json({ tasks: created, count: created.length });
   } catch (error) {
     next(error);

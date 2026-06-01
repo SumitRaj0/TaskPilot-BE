@@ -2,20 +2,17 @@ import mongoose from 'mongoose';
 
 export const connectDB = async () => {
   const uri = process.env.MONGODB_URI;
-  if (!uri) {
-    throw new Error('MONGODB_URI is not defined in environment variables');
-  }
+  if (!uri) throw new Error('MONGODB_URI missing from .env');
 
   try {
     await mongoose.connect(uri);
     console.log('MongoDB connected');
-  } catch (error) {
-    if (error.message?.includes('ENOTFOUND') || error.code === 'ENOTFOUND') {
+  } catch (err) {
+    if (err.message?.includes('ENOTFOUND') || err.code === 'ENOTFOUND') {
       throw new Error(
-        'Cannot resolve MongoDB host. In Atlas: Connect → Drivers → copy the full connection string. ' +
-          'The host must look like cluster0.xxxxx.mongodb.net (not cluster.mongodb.net).'
+        'Bad MongoDB host — copy the full URI from Atlas (cluster0.xxxxx.mongodb.net)'
       );
     }
-    throw error;
+    throw err;
   }
 };

@@ -20,9 +20,7 @@ app.use(
 app.use(express.json({ limit: '10kb' }));
 app.use(cookieParser());
 
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'TaskPilot AI API is running' });
-});
+app.get('/api/health', (_, res) => res.json({ ok: true }));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
@@ -30,16 +28,11 @@ app.use('/api/ai', aiRoutes);
 
 app.use(errorHandler);
 
-const start = async () => {
-  try {
-    await connectDB();
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-  } catch (error) {
-    console.error('Failed to start server:', error.message);
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => console.log(`API on http://localhost:${PORT}`));
+  })
+  .catch((err) => {
+    console.error('Startup failed:', err.message);
     process.exit(1);
-  }
-};
-
-start();
+  });
